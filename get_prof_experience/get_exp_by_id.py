@@ -16,7 +16,8 @@ except MySQLdb.Error, e:
 
 def insertMySQL(exp):
     for i in range(len(exp)):
-        exp[i] = exp[i].decode('utf8')
+        if type(exp[i]).__name__ == "unicode":
+            exp[i] = exp[i].decode('utf8')
     try:
         conn=MySQLdb.connect(host='172.16.1.43', user='root', passwd='root123456', port=3306, charset='utf8')
         cur=conn.cursor()
@@ -32,9 +33,9 @@ def insertMySQL(exp):
     except MySQLdb.Error, e:
         print "MySQL error %d: %s" % (e.args[0], e.args[1])
 
-dirlist = os.listdir('zhuresults')
+dirlist = os.listdir('/sdd/gc14_home_bak/sjc/NER_RE/TOOLS/crf/zhuresults')
 for listname in dirlist:
-    dirname = os.path.join('zhuresults',listname)
+    dirname = os.path.join('/sdd/gc14_home_bak/sjc/NER_RE/TOOLS/crf/zhuresults',listname)
     file = open(dirname)
     exp = [listname,"","","","","","",""]
     for line in file:
