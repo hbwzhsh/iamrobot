@@ -1,3 +1,4 @@
+ #  coding=utf-8
 import os
 import sys
 import re
@@ -13,7 +14,7 @@ def insertMySQL(wiki_):
         conn=MySQLdb.connect(host='localhost', user='root',passwd='root123456',port=3306,charset='utf8')
         cur=conn.cursor()
         conn.select_db('pythontest')
-        cur.execute('insert into wiki_zh values(NULL,%s,%s,%s)',wiki_)
+        cur.execute('insert into wiki_zh_2013_Nov_04 values(NULL,%s,%s,%s)',wiki_)
         conn.commit()
         cur.close()
         conn.close()
@@ -22,8 +23,6 @@ def insertMySQL(wiki_):
             print wiki_[i]
     except MySQLdb.Error, ee:
         print "MySQL error %d: %s" % (ee.args[0],ee.args[1])
-in_sql = "insert into wiki_zh(title,source,abstract) values(%s,%s,%s)"
-fields = ("title","url","abstract")
 class Db_Connect:  
     def __init__(self, db_host, user, pwd, db_name, charset="utf8",  use_unicode = True):  
         print "init begin"  
@@ -55,9 +54,9 @@ class WikiHandler(handler.ContentHandler):
         self.in_quote = 1  
     def endElement(self, name):  
         if name == "doc":
-            
-            in_fields = tuple([('"'+re.sub('"','',self.doc.get(i,""))+' "')  for i in fields ])  
-            print in_sql % in_fields  
+            in_fields = tuple([('"'+re.sub('"','',self.doc.get(i,"").replace("Wikipedia：","").replace("\\",""))+'"') for i in fields ])
+            in_fields[0].strip()
+            print in_sql % in_fields
             db_ops.insert( in_sql%(in_fields))  
         self.in_quote = 0  
     def characters(self, content):  
@@ -65,7 +64,11 @@ class WikiHandler(handler.ContentHandler):
             self.doc.update({self.current_tag: content})
 if __name__ == "__main__":
     f = open(sys.argv[1])
+    table_name = sys.argv[2]
+    in_sql = "insert into "+table_name+"(title,source,abstract) values(%s,%s,%s)"
+    fields = ("title","url","abstract")
     db_ops = Db_Connect("localhost","root","root123456","pythontest")
     parseString(f.read(), WikiHandler(db_ops))
     f.close()
     db_ops.close()
+    print "Finish!"

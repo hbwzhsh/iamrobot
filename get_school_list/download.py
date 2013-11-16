@@ -82,10 +82,18 @@ if __name__=='__main__':
     # 查找导航主页中包含子导航部分
     results = p.findall(root_content)
     results = results[0].decode('GBK').encode('utf-8')
+    
     f.close()
     # 查找导航主页中子导航url
     p = re.compile('href="(.*?)"')
-    results = p.findall(results)
+    secondary_results = p.findall(results)
+    # 查找省份
+    p = re.compile('class="first">(.*?)</td>')
+    provinces = p.findall(results)
+    for k in range(len(provinces)):
+        with open('output/provinces.js','a+') as provincefile:
+            provincefile.write('\''+provinces[k]+'\',')
+            print '成功保存省份'
     print "请输入保存文件名、保存选项"
     print "请输入保存选项"
     print "******************"
@@ -94,11 +102,11 @@ if __name__=='__main__':
     print "******************"
     savedoptions = raw_input()
     options = savedoptions.split(' ')
-    for i in range(len(results)):
+    for i in range(len(secondary_results)):
         p = re.compile('htm\/(.*?.htm)')
-        second_filename = p.findall(results[i])
+        second_filename = p.findall(secondary_results[i])
         second_filename = second_filename[0]
-        downloadhtml(results[i],second_filename)
+        downloadhtml(secondary_results[i],second_filename)
         f = open(second_filename)
         second_content = f.read()
         f.close()
@@ -111,7 +119,7 @@ if __name__=='__main__':
             for m in range(len(third_results)):
                 with open('output/'+options[0],'a+') as resultfile:
                     if(options[1] == "1"):
-                        resultfile.write(third_results[m][1]+'\n')
+                        resultfile.write('\''+third_results[m][1]+'\',')
                     else:
                         resultfile.write(third_results[m][1]+'@'+third_results[m][0]+'\n')
     print "finish!"
