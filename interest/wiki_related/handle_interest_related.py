@@ -8,6 +8,7 @@ import os
 import sys
 import re
 import MySQLdb
+import getpass
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -35,8 +36,11 @@ def inserttoMysql(interest):
         if select_result == 0:
             return
         else:
-            cur.execute('UPDATE wiki_zh SET related_wiki= "%s" WHERE title="%s"' % (interest[1], interest[0]))
-            conn.commit()
+            sql = 'UPDATE wiki_zh SET related_wiki="%s" WHERE title="%s";' % (interest[1],interest[0])
+            count += 1
+            if(count > 1000):
+                cur.execute('UPDATE wiki_zh SET related_wiki= "%s" WHERE title="%s"' % (interest[1], interest[0]))
+                conn.commit()
             print "Insert Success"
         cur.close()
         conn.close()
@@ -44,14 +48,27 @@ def inserttoMysql(interest):
         print "MySQL error %d: %s" % (ee.args[0],ee.args[1])
 if __name__ == "__main__":
     f = open(sys.argv[1])
-    # testMysql("123123123123123");
-    for line in f:
-         tmp = line.split(":")
-         if len(tmp) > 1:
-             tmp[1] = tmp[1].strip('\n').strip()
-             print tmp
-             inserttoMysql(tmp)
-         else:
-             # sys.exit(0)
-             print "Null"
+    host = sys.argv[2]
+    user = sys.argv[3]
+    passwd = getpass.getpass('password:')
+    sql = ""
+    try:
+        conn = MySQLdb.connect(host, user ,passwd , port=3306, charset='utf8')
+        cur=conn.cursor()
+        conn.select_db('51prof_main')
+        for line in f:
+            tmp = line.split(":")
+            if len(tmp) > 1:
+                tmp[1] = tmp[1].strip('\n').strip()
+                sql +='UPDATE wiki_zh SET `related_wiki`="%s" where title="%s";' % (tmp[1],tmp[0])
+                # print sql
+            else:
+                print "Null"
+        cur.execute(sql)
+        conn.commit()
+        cur.close()
+        conn.close()
+        print "Insert Success!"
+    except MySQLdb.Error, ee:
+        print "MySQL error %d: %s" % (ee.args[0], ee.args[1])
     print "Finished!"
