@@ -1,6 +1,6 @@
-import os
+# import os
 import sys
-import re
+# import re
 import MySQLdb
 
 reload(sys)

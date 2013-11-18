@@ -1,0 +1,13 @@
+***This project contains all scripts we have used in prof search project***
+***Start From 2013-11-17***
+***First by Luo/Yang/Ming/Zhu***
+
+Contents:
+    iamrobot-|get_prof_experience/
+             |get_school_list/
+             |interest/
+             |---- wiki_related/
+             |utils/
+             |wiki/
+
+
