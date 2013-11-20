@@ -92,9 +92,10 @@ if __name__ == "__main__":
             element["interests"] = tmp_str
         OutPutJsonFileName = raw_input("Input the output filename: ")
         ResultJson = "["
-        TotalLen = len(Json2List)
+        TotalLen = float(len(Json2List))
+
         for j in range(len(Json2List)):
-            os.write(1, "\r %d Lines have been processed, %.2f %%, %s Seconds have been spent" % (j,j/TotalLen,time.clock()-StartTime))
+            os.write(1, "\r %d Lines have been processed, %.3f %%, %s Seconds have been spent" % (j,j/TotalLen,time.clock()-StartTime))
             sys.stdout.flush()
             tmpjson =  simplejson.dumps(Json2List[j]).decode('unicode_escape').encode('utf-8').replace("||||||||||","").replace("\n","")
             if j < (len(Json2List)-1):
