@@ -5,6 +5,7 @@
 @authors         : <mailto:zhuwei.ict.ac.cn>
 @date            : 2013-11-19
 @version         : 1.0
+@company         : ICT
 '''
 __author__ = 'zhuwei'
 import re
