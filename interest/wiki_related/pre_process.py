@@ -105,9 +105,9 @@ if __name__ == "__main__":
         for j in range(len(Json2List)):
             os.write(1, "\r %d Lines have been processed, %.3f %%, %s Seconds have been spent" % (
             j, 100.0 * j / TotalLen, time.clock() - StartTime))
-            sys.stdout.flush()
             tmpsql = GenerateSQL(Json2List[j])
             SaveResults(tmpsql, OutPutFileName, IsJson=0)
+            sys.stdout.flush()
             # tmpjson =  GenerateJSON(Json2List[j])
             # if j < (len(Json2List)-1):
             #    ResultJson += tmpjson + ","
