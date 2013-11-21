@@ -50,7 +50,6 @@ def pre_proccess(g_fread, outFile=1, ifBeauty=0):
 
 # 结果存储函数
 def SaveResults(data, FileName, IsJson=1):
-    print "\nSaving..."
     if IsJson == 1:
         data = jsbeautifier.beautify(data)
     with open(FileName, 'a+') as outputFile:
