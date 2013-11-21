@@ -49,12 +49,20 @@ def pre_proccess(g_fread, outFile=1, ifBeauty=0):
         return fileS
 
 # 结果存储函数
-def SaveResults(data,FileName):
+def SaveResults(data, FileName, IsJson=1):
     print "\nSaving..."
-    data = jsbeautifier.beautify(data)
-    with open(FileName, 'w+') as outputFile:
+    if IsJson == 1:
+        data = jsbeautifier.beautify(data)
+    with open(FileName, 'a+') as outputFile:
         outputFile.write(data)
 
+def GenerateSQL(data):
+    tmpsql = "UPDATE `prof_tags` set `interests`=\"%s\" WHERE `id`=%s \n" % (
+            data["interests"].encode('utf-8').replace("||||||||||",""), data["id"])
+    return tmpsql
+def GenerateJSON(data):
+    tmpjson = simplejson.dumps(data).decode('unicode_escape').encode('utf-8').replace("||||||||||","").replace("\n","")
+    return tmpjson
 
 if __name__ == "__main__":
     global StartTime
@@ -86,24 +94,27 @@ if __name__ == "__main__":
             tmp_str = ""
             for i in range(len(tmp_elememt)):
                 if (tmp_elememt[i] <> "" and lcjRelatedInterestDict.has_key(tmp_elememt[i])):
-                    tmp_elememt[i] += "[[:]]" +lcjRelatedInterestDict[tmp_elememt[i]]
+                    tmp_elememt[i] += "[[:]]" + lcjRelatedInterestDict[tmp_elememt[i]]
                     count += 1
                 tmp_str += tmp_elememt[i] + "|||||"
             element["interests"] = tmp_str
-        OutPutJsonFileName = raw_input("Input the output filename: ")
+        OutPutFileName = raw_input("Input the output filename: ")
         ResultJson = "["
         TotalLen = float(len(Json2List))
 
         for j in range(len(Json2List)):
-            os.write(1, "\r %d Lines have been processed, %.3f %%, %s Seconds have been spent" % (j,100.0*j/TotalLen,time.clock()-StartTime))
+            os.write(1, "\r %d Lines have been processed, %.3f %%, %s Seconds have been spent" % (
+            j, 100.0 * j / TotalLen, time.clock() - StartTime))
             sys.stdout.flush()
-            tmpjson =  simplejson.dumps(Json2List[j]).decode('unicode_escape').encode('utf-8').replace("||||||||||","").replace("\n","")
-            if j < (len(Json2List)-1):
-                ResultJson += tmpjson + ","
-            else:
-                ResultJson += tmpjson
-        ResultJson += "]"
-        SaveResults(ResultJson,OutPutJsonFileName)
+            tmpsql = GenerateSQL(Json2List[j])
+            SaveResults(tmpsql, OutPutFileName, IsJson=0)
+            # tmpjson =  GenerateJSON(Json2List[j])
+            # if j < (len(Json2List)-1):
+            #    ResultJson += tmpjson + ","
+            # else:
+            #    ResultJson += tmpjson
+        # ResultJson += "]"
+        # SaveResults(ResultJson,OutPutFileName)
         EndTime = time.clock()
         print count
         print "Finish! Total costs " + bytes(EndTime - StartTime) + " seconds"
