@@ -57,7 +57,7 @@ def SaveResults(data, FileName, IsJson=1):
 
 
 def GenerateSQL(data):
-    tmpsql = "UPDATE `prof_tags` set `interests`=\"%s\" WHERE `id`=%s \n" % (
+    tmpsql = "UPDATE `prof_tags` set `interests`=\"%s\" WHERE `person_id`=%s \n" % (
         data["interests"].encode('utf-8').replace("||||||||||", "").replace("\n", ""), data["id"])
     return tmpsql
 
