@@ -102,7 +102,7 @@ if __name__ == "__main__":
                     count += 1
                 tmp_str += tmp_elememt[i] + "|||||"
             element["interests"] = tmp_str
-        OutPutFileName = raw_input("Input the output filename: ")
+        OutPutFileName = raw_input("\nInput the output filename: ")
         ResultJson = "["
         TotalLen = float(len(Json2List))
 
