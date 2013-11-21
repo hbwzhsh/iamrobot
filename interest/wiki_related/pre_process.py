@@ -81,11 +81,16 @@ if __name__ == "__main__":
         g_nTotalSize = os.path.getsize(sys.argv[2])
         lcjRelatedInterestFile = file(sys.argv[2])
         lcjRelatedInterestDict = {}
+        CountLine = 0
+
         for eachLine in lcjRelatedInterestFile:
+            os.write(1, "\r %d Lines have been read, %.3f %% Finished, %s Seconds have been spent" %(CountLine, 100.0*CountLine/449082, time.clock() - StartTime))
             tmp_list = eachLine.split("[[:]]")
             key = tmp_list[0].decode('utf-8')
             value = tmp_list[1].decode('utf-8')
             lcjRelatedInterestDict[key] = value
+            CountLine += 1
+            sys.stdout.flush()
         lcjRelatedInterestFile.close()
         count = 0
         for element in Json2List:
