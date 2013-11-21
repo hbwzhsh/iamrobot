@@ -55,13 +55,18 @@ def SaveResults(data, FileName, IsJson=1):
     with open(FileName, 'a+') as outputFile:
         outputFile.write(data)
 
+
 def GenerateSQL(data):
     tmpsql = "UPDATE `prof_tags` set `interests`=\"%s\" WHERE `id`=%s \n" % (
-            data["interests"].encode('utf-8').replace("||||||||||",""), data["id"])
+        data["interests"].encode('utf-8').replace("||||||||||", "").replace("\n", ""), data["id"])
     return tmpsql
+
+
 def GenerateJSON(data):
-    tmpjson = simplejson.dumps(data).decode('unicode_escape').encode('utf-8').replace("||||||||||","").replace("\n","")
+    tmpjson = simplejson.dumps(data).decode('unicode_escape').encode('utf-8').replace("||||||||||", "").replace("\n",
+                                                                                                                "")
     return tmpjson
+
 
 if __name__ == "__main__":
     global StartTime
@@ -83,7 +88,8 @@ if __name__ == "__main__":
         CountLine = 0
 
         for eachLine in lcjRelatedInterestFile:
-            os.write(1, "\r %d Lines have been read, %.3f %% Finished, %s Seconds have been spent" %(CountLine, 100.0*CountLine/449082, time.clock() - StartTime))
+            os.write(1, "\r %d Lines have been read, %.3f %% Finished, %s Seconds have been spent" % (
+                CountLine, 100.0 * CountLine / 449082, time.clock() - StartTime))
             tmp_list = eachLine.split("[[:]]")
             key = tmp_list[0].decode('utf-8')
             value = tmp_list[1].decode('utf-8')
@@ -108,7 +114,7 @@ if __name__ == "__main__":
 
         for j in range(len(Json2List)):
             os.write(1, "\r %d Lines have been processed, %.3f %%, %s Seconds have been spent" % (
-            j, 100.0 * j / TotalLen, time.clock() - StartTime))
+                j, 100.0 * j / TotalLen, time.clock() - StartTime))
             tmpsql = GenerateSQL(Json2List[j])
             SaveResults(tmpsql, OutPutFileName, IsJson=0)
             sys.stdout.flush()
