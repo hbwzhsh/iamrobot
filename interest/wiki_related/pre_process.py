@@ -7,6 +7,8 @@
 @version         : 1.0
 @company         : ICT
 '''
+# 处理研究兴趣
+
 __author__ = 'zhuwei'
 import re
 import sys
