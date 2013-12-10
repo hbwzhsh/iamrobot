@@ -25,7 +25,7 @@ g_fStartTime = time.time()
 def process(data, outFile):
     global g_nProccessed
     data = jsbeautifier.beautify(data)
-    data = data.replace('|||||\n"\n}', '|||||"\n}')
+    #data = data.replace('|||||\n"\n}', '|||||"\n}')
     with open(outFile, 'w+') as outputFile:
         outputFile.write(data)
 
@@ -120,13 +120,6 @@ if __name__ == "__main__":
             tmpsql = GenerateSQL(Json2List[j])
             SaveResults(tmpsql, OutPutFileName, IsJson=0)
             sys.stdout.flush()
-            # tmpjson =  GenerateJSON(Json2List[j])
-            # if j < (len(Json2List)-1):
-            #    ResultJson += tmpjson + ","
-            # else:
-            #    ResultJson += tmpjson
-        # ResultJson += "]"
-        # SaveResults(ResultJson,OutPutFileName)
         EndTime = time.clock()
         print count
         print "Finish! Total costs " + bytes(EndTime - StartTime) + " seconds"
