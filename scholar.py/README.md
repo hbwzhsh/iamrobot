@@ -31,3 +31,12 @@ License
 -------
 
 scholar.py is using the standard [BSD license](http://opensource.org/licenses/BSD-2-Clause).
+
+=======
+getFromScholar.py
+
+getFromScholar.py 是改自 scholar.py 的一个程序，加入了使用代理的方式爬取数据，本程序不具有通用性
+
+Usage
+---------
+python getFromScholar.py

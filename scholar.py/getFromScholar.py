@@ -61,7 +61,9 @@ page.  It is not a recursive crawler.
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
+import httplib
+import socket
+import hashlib
 import optparse
 import sys
 import re
@@ -215,7 +217,7 @@ class ScholarParser():
         for tag in span:
             if not hasattr(tag, 'name'):
                 continue
-            if tag.name != 'a' or tag.get('href') == None:
+            if tag.name != 'a' or None == tag.get('href'):
                 continue
 
             if tag.get('href').startswith('/scholar?cites'):
@@ -236,7 +238,8 @@ class ScholarParser():
             return True
         return False
 
-    def _as_int(self, obj):
+    @staticmethod
+    def _as_int(obj):
         try:
             return int(obj)
         except ValueError:
@@ -262,7 +265,6 @@ class ScholarParser120201(ScholarParser):
         for tag in div:
             if not hasattr(tag, 'name'):
                 continue
-
             if tag.name == 'h3' and tag.get('class') == 'gs_rt' and tag.a:
                 self.article['title'] = ''.join(tag.a.findAll(text=True))
                 self.article['url'] = self._path2url(tag.a['href'])
@@ -356,11 +358,11 @@ class ScholarQuerier():
 
         if self.count != 0:
             self.scholar_url += '&num=%d' % self.count
-
         self.cjar = CookieJar()
+        self.proxy = urllib2.ProxyHandler({'http': random.choice(proxy_list)})
+        self.proxy_addr = ''
+        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cjar), self.proxy)
 
-    #def change_proxy(self):
-    #    self.proxy =
     def query(self, search):
         """
         This method initiates a query with subsequent parsing of the
@@ -377,20 +379,33 @@ class ScholarQuerier():
                 req = urllib2.Request(url=url,
                                       headers={'User-Agent': random.choice(self.user_agents)})
                 hdl = urllib2.urlopen(req, timeout=20)
+                html = hdl.read()
                 print self.proxy_addr + 'Success'
                 break
-            except urllib2.URLError, e:
+            except (urllib2.URLError, httplib.BadStatusLine, socket.error), e:
                 if hasattr(e, 'code'):
                     print str(e.code) + e.msg
                     if e.code == 403 or e.code == 503:
                         proxy_list.remove(self.proxy_addr)
-                elif e.reason.message == 'timed out':
+                elif hasattr(e, 'reason') and e.reason.message == 'timed out':
                     print "Timed Out" + self.proxy_addr
                     #proxy_list.remove(self.proxy_addr)
                 self.proxy_addr = proxy_addr_
                 continue
-        html = hdl.read()
+        if not html:
+            self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cjar))
+            urllib2.install_opener(self.opener)
+            try:
+                req = urllib2.Request(url=url,
+                                      headers={'User-Agent': random.choice(self.user_agents)})
+                hdl = urllib2.urlopen(req, timeout=20)
+                html = hdl.read()
+                print 'Use local network Success'
+            except UnboundLocalError, e:
+                print str(e)
         self.parse(html)
+        with open('/sdc/zhuwei/prof_data/gscholar_html/' + hashlib.new('sha1', url).hexdigest(), 'w') as saved_file:
+            saved_file.write(html)
 
     def parse(self, html):
         """
@@ -473,8 +488,9 @@ def txt(query, author, count):
         print art.as_txt() + '\n'
 
 
-def saveTxt(query, author, count, personid):
+def saveTxt(query, author, count, personid, paperid):
     querier = ScholarQuerier(author=author, count=count)
+    print query
     querier.query(query)
     articles = querier.articles
     if count > 0:
@@ -530,6 +546,7 @@ def getand():
         ran = random.expovariate(1 / 3.0)
     elif randType == 8:
         ran = random.expovariate(1 / 5.0)
+    # Uncomment next tew line to get a larger random number
     #elif randType == 11:
     #    ran = random.expovariate(1 / 100.0)
     else:
@@ -541,36 +558,36 @@ class PaperHandler(handler.ContentHandler):
     def __init__(self):
         self.doc = {}
         self.current_tag = ""
+        self.current_attr = ""
         self.in_quote = 0
         self.count = 1
-        self.returnValue = []
 
     def startElement(self, name, attr):
-        if name == "paper":
+        if name == "table":
             self.doc = {}
+        if name == "column":
+            self.current_attr = attr['name']
         self.current_tag = name
         self.in_quote = 1
 
     def endElement(self, name):
-        if name == "paper":
+        if name == "table":
             if self.doc.get('title', '') <> "":
-                in_fields = tuple([(re.sub(u"(?<=[\u4e00-\u9fa5]) (?=[\u4e00-\u9fa5])", '',
-                                           self.doc.get(i, "").replace(' - ', '-').replace('"', '\\\"'))) for i in
-                                   fields])
-                saveTxt(in_fields[0], author='', count=5, personid=in_fields[4])
-                print in_fields[0]
-                #gscholar.query(in_fields[0].encode('utf-8'), 4)
-
+                in_fields = tuple(self.doc.get(i, '') for i in fields)
+                pat = re.compile(u'[\u4e00-\u9fa5]')
+                if not re.search(u'[\u4e00-\u9fa5]', in_fields[1]):
+                    saveTxt(in_fields[1], author='', count=5, personid=in_fields[5], paperid=in_fields[0])
+                    time.sleep(getand())
+                print in_fields[1]
                 self.count += 1
                 sys.stdout.write("\r%.3f%% Finished %s \n" % (
                     100.0 * self.count / 1480365, ('%%-%ds' % 100) % (100 * self.count / 1480365 * '=')))
                 sys.stdout.flush()
-                time.sleep(getand())
         self.in_quote = 0
 
     def characters(self, content):
         if self.in_quote:
-            self.doc.update({self.current_tag: content})
+            self.doc.update({self.current_attr: content})
 
 
 def main():
@@ -582,6 +599,10 @@ A command-line interface to Google Scholar."""
     parser = optparse.OptionParser(usage=usage, formatter=fmt)
     parser.add_option('-a', '--author',
                       help='Author name')
+    parser.add_option('-i', '--input',
+                      help='Paper List')
+    parser.add_option('-o', '--output',
+                      help='Output dir')
     parser.add_option('--csv', action='store_true',
                       help='Print article data in CSV format (separator is "|")')
     parser.add_option('--csv-header', action='store_true',
@@ -590,7 +611,8 @@ A command-line interface to Google Scholar."""
                       help='Print article data in text format')
     parser.add_option('-c', '--count', type='int',
                       help='Maximum number of results')
-
+    parser.add_option('-s', '--save', action='store_true',
+                      help='Save qquery result in text file')
     parser.set_defaults(count=0, author='')
     options, args = parser.parse_args()
 
@@ -604,11 +626,12 @@ A command-line interface to Google Scholar."""
         csv(query, author=options.author, count=options.count)
     elif options.csv_header:
         csv(query, author=options.author, count=options.count, header=True)
+    elif options.save:
+        parseString(ReadFile(sys.argv[1]), PaperHandler())
     else:
         txt(query, author=options.author, count=options.count)
 
 
 if __name__ == "__main__":
-    fields = ("title", "source", "time", "authors", "personid")
-    #main()
-    parseString(ReadFile(sys.argv[1]), PaperHandler())
+    fields = ("id", "title", "source", "time", "authors", "personid")
+    main()
