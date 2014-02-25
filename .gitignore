@@ -5,3 +5,6 @@ iamrobot
 lcj*
 *.json
 *.sql
+output*
+*.demo
+.idea/
